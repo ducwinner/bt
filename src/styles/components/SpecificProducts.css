@@ -1,0 +1,25 @@
+.specific-products .Polaris-Card {
+  margin: 10px 0;
+}
+
+.specific-products .Polaris-ResourceItem__Container {
+  background-color: #f4f5fe;
+}
+
+.resourceItem {
+  position: relative;
+}
+
+.resourceItem .icon {
+  position: absolute;
+  top: 15%;
+  right: 15px;
+}
+
+.resourceItem .icon {
+  padding: 5px;
+}
+
+.resourceItem .icon:hover {
+  color: rgb(221, 61, 61);
+}

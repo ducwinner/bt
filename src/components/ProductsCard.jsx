@@ -1,230 +1,70 @@
-import { useEffect, useState, useCallback } from "react";
-import {
-  Card,
-  Heading,
-  TextContainer,
-  DisplayText,
-  TextStyle,
-  Button,
-} from "@shopify/polaris";
-import { Toast, useAppBridge } from "@shopify/app-bridge-react";
-import { gql, useMutation } from "@apollo/client";
-
-import { userLoggedInFetch } from "../App";
-
-const PRODUCTS_QUERY = gql`
-  mutation populateProduct($input: ProductInput!) {
-    productCreate(input: $input) {
-      product {
-        title
-      }
-    }
-  }
-`;
+import { useState } from 'react';
+import { Card, Heading, TextContainer, DisplayText, TextStyle } from '@shopify/polaris';
+import { Toast } from '@shopify/app-bridge-react';
+import { useAppQuery, useAuthenticatedFetch } from '../hooks';
 
 export function ProductsCard() {
-  const [populateProduct, { loading }] = useMutation(PRODUCTS_QUERY);
-  const [productCount, setProductCount] = useState(0);
-  const [hasResults, setHasResults] = useState(false);
+  const emptyToastProps = { content: null };
+  const [isLoading, setIsLoading] = useState(true);
+  const [toastProps, setToastProps] = useState(emptyToastProps);
+  const fetch = useAuthenticatedFetch();
 
-  const app = useAppBridge();
-  const fetch = userLoggedInFetch(app);
-  const updateProductCount = useCallback(async () => {
-    const { count } = await fetch("/products-count").then((res) => res.json());
-    setProductCount(count);
-  }, []);
+  const {
+    data,
+    refetch: refetchProductCount,
+    isLoading: isLoadingCount,
+    isRefetching: isRefetchingCount,
+  } = useAppQuery({
+    url: '/api/products/count',
+    reactQueryOptions: {
+      onSuccess: () => {
+        setIsLoading(false);
+      },
+    },
+  });
 
-  useEffect(() => {
-    updateProductCount();
-  }, [updateProductCount]);
-
-  const toastMarkup = hasResults && (
-    <Toast
-      content="5 products created!"
-      onDismiss={() => setHasResults(false)}
-    />
+  const toastMarkup = toastProps.content && !isRefetchingCount && (
+    <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
   );
+
+  const handlePopulate = async () => {
+    setIsLoading(true);
+    const response = await fetch('/api/products/create');
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({ content: '5 products created!' });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: 'There was an error creating products',
+        error: true,
+      });
+    }
+  };
 
   return (
     <>
       {toastMarkup}
-      <Card title="Product Counter" sectioned>
+      <Card
+        title="Product Counter"
+        sectioned
+        primaryFooterAction={{
+          content: 'Populate 5 products',
+          onAction: handlePopulate,
+          loading: isLoading,
+        }}
+      >
         <TextContainer spacing="loose">
-          <p>
-            Sample products are created with a default title and price. You can
-            remove them at any time.
-          </p>
+          <p>Sample products are created with a default title and price. You can remove them at any time.</p>
           <Heading element="h4">
             TOTAL PRODUCTS
             <DisplayText size="medium">
-              <TextStyle variation="strong">{productCount}</TextStyle>
+              <TextStyle variation="strong">{isLoadingCount ? '-' : data.count}</TextStyle>
             </DisplayText>
           </Heading>
-          <Button
-            primary
-            loading={loading}
-            onClick={() => {
-              Promise.all(
-                Array.from({ length: 5 }).map(() =>
-                  populateProduct({
-                    variables: {
-                      input: {
-                        title: randomTitle(),
-                      },
-                    },
-                  })
-                )
-              ).then(() => {
-                updateProductCount();
-                setHasResults(true);
-              });
-            }}
-          >
-            Populate 5 products
-          </Button>
         </TextContainer>
       </Card>
     </>
   );
 }
-
-function randomTitle() {
-  const adjective = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
-  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
-
-  return `${adjective} ${noun}`;
-}
-
-const ADJECTIVES = [
-  "autumn",
-  "hidden",
-  "bitter",
-  "misty",
-  "silent",
-  "empty",
-  "dry",
-  "dark",
-  "summer",
-  "icy",
-  "delicate",
-  "quiet",
-  "white",
-  "cool",
-  "spring",
-  "winter",
-  "patient",
-  "twilight",
-  "dawn",
-  "crimson",
-  "wispy",
-  "weathered",
-  "blue",
-  "billowing",
-  "broken",
-  "cold",
-  "damp",
-  "falling",
-  "frosty",
-  "green",
-  "long",
-  "late",
-  "lingering",
-  "bold",
-  "little",
-  "morning",
-  "muddy",
-  "old",
-  "red",
-  "rough",
-  "still",
-  "small",
-  "sparkling",
-  "throbbing",
-  "shy",
-  "wandering",
-  "withered",
-  "wild",
-  "black",
-  "young",
-  "holy",
-  "solitary",
-  "fragrant",
-  "aged",
-  "snowy",
-  "proud",
-  "floral",
-  "restless",
-  "divine",
-  "polished",
-  "ancient",
-  "purple",
-  "lively",
-  "nameless",
-];
-
-const NOUNS = [
-  "waterfall",
-  "river",
-  "breeze",
-  "moon",
-  "rain",
-  "wind",
-  "sea",
-  "morning",
-  "snow",
-  "lake",
-  "sunset",
-  "pine",
-  "shadow",
-  "leaf",
-  "dawn",
-  "glitter",
-  "forest",
-  "hill",
-  "cloud",
-  "meadow",
-  "sun",
-  "glade",
-  "bird",
-  "brook",
-  "butterfly",
-  "bush",
-  "dew",
-  "dust",
-  "field",
-  "fire",
-  "flower",
-  "firefly",
-  "feather",
-  "grass",
-  "haze",
-  "mountain",
-  "night",
-  "pond",
-  "darkness",
-  "snowflake",
-  "silence",
-  "sound",
-  "sky",
-  "shape",
-  "surf",
-  "thunder",
-  "violet",
-  "water",
-  "wildflower",
-  "wave",
-  "water",
-  "resonance",
-  "sun",
-  "wood",
-  "dream",
-  "cherry",
-  "tree",
-  "fog",
-  "frost",
-  "voice",
-  "paper",
-  "frog",
-  "smoke",
-  "star",
-];

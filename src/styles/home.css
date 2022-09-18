@@ -1,0 +1,100 @@
+.hide {
+  display: none;
+}
+
+.Polaris-Layout__Section > .Polaris-Heading {
+  margin: 20px 0;
+  font-size: 22px;
+  color: rgb(99, 99, 99);
+  font-weight: 600;
+}
+
+.Polaris-ChoiceList__ChoiceItem .Polaris-ChoiceList__ChoiceChildren {
+  padding-left: 0;
+}
+
+.specific-products .Polaris-Card {
+  margin: 10px 0;
+}
+
+.Polaris-DisplayText.Polaris-DisplayText--sizeSmall {
+  text-align: center;
+}
+
+.Polaris-ChoiceList__ChoiceItem {
+  margin: 15px;
+}
+
+.pricing-detail-heading {
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 10px 15px;
+  color: #fff;
+  margin-bottom: 26px;
+  background: linear-gradient(to right, #b92b27, #1565c0);
+}
+
+.Polaris-DataTable__Table thead th {
+  width: 80px;
+}
+
+.pricing-detail {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.header-footer {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  margin: 50px 0 10px 0;
+}
+
+.button-save {
+  position: absolute;
+  background-color: #008060;
+  color: #fff;
+  border: none;
+  top: 0;
+  right: 100px;
+  text-align: center;
+  outline: none;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.button-save:hover {
+  background-color: #035a44;
+}
+
+.Polaris-DataTable__Table thead tr th.Polaris-DataTable__Cell {
+  background: linear-gradient(to right, #992420, #1159ac);
+  color: #fff;
+  width: 180px;
+  height: 30px;
+  padding: 0;
+  text-align: center;
+  line-height: 29px;
+}
+
+.Polaris-DataTable__Table tbody tr td,
+.Polaris-DataTable__Table tbody tr th {
+  text-align: center;
+}
+/* 
+.isOkeAdd {
+    cursor: pointer;
+    background-color: #008060;
+    color: #fff;
+    border: none
+}
+
+.isOkeAdd:hover {
+    background-color: #035a44;
+} */
