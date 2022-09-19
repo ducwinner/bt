@@ -8,55 +8,29 @@ import { addTags } from '../../redux/productTagSlice';
 import { getProductTags } from '../../data/productTag';
 import { useQuery, gql } from '@apollo/client';
 
-const queryTags = gql`
-  {
-    shop {
-      productTags(first: 10) {
-        edges {
-          node
-        }
-      }
-    }
-  }
-`;
-
-function ProductTags() {
+function ProductTags({ tags }) {
   //Hook
-  const [productTags, setProductTags] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [options, setOptions] = useState([]);
+  const [options, setOptions] = useState(tags);
 
   // Redux
   const selectedOptions = useSelector((state) => state.tags.data);
   const dispatch = useDispatch();
-
-  // call api: get Tags
-  const { data, loading } = useQuery(queryTags, {
-    onCompleted() {
-      const tag = data.shop.productTags.edges.map((e) => {
-        return e.node;
-      });
-      setProductTags(tag);
-      setOptions(tag);
-    },
-  });
-
-  console.log(productTags);
 
   const updateText = useCallback(
     (value) => {
       setInputValue(value);
 
       if (value === '') {
-        setOptions(productTags);
+        setOptions(tags);
         return;
       }
 
       const filterRegex = new RegExp(value, 'i');
-      const resultOptions = productTags.filter((option) => option.match(filterRegex));
+      const resultOptions = tags.filter((option) => option.match(filterRegex));
       setOptions(resultOptions);
     },
-    [productTags]
+    [tags]
   );
 
   const updateSelection = useCallback(

@@ -32,7 +32,7 @@
   padding: 10px 15px;
   color: #fff;
   margin-bottom: 26px;
-  background: linear-gradient(to right, #b92b27, #1565c0);
+  background: linear-gradient(to right, #2a00c5, #b400b5);
 }
 
 .Polaris-DataTable__Table thead th {
@@ -73,19 +73,34 @@
   background-color: #035a44;
 }
 
+.Polaris-DataTable__Table thead tr {
+  background: linear-gradient(to right, #2a00c5, #b400b5);
+}
+
 .Polaris-DataTable__Table thead tr th.Polaris-DataTable__Cell {
-  background: linear-gradient(to right, #992420, #1159ac);
   color: #fff;
   width: 180px;
   height: 30px;
+  font-weight: 500;
   padding: 0;
-  text-align: center;
+  text-align: left;
   line-height: 29px;
+  padding: 0 10px;
 }
 
-.Polaris-DataTable__Table tbody tr td,
+.Polaris-DataTable__Table thead tr th.Polaris-DataTable__Cell:first-child {
+  margin-right: 10px;
+}
+
+.Polaris-DataTable__Table thead tr th.Polaris-DataTable__Cell:last-child {
+  text-align: right;
+}
+
 .Polaris-DataTable__Table tbody tr th {
-  text-align: center;
+}
+
+.Polaris-DataTable__Table tbody tr td:last-child {
+  text-align: right;
 }
 /* 
 .isOkeAdd {

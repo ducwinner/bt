@@ -33,34 +33,3 @@ export const customProductAll = (response) => {
 
   return data;
 };
-
-export const customProductByTags = (response) => {
-  const data = response.products.products.edges.map((e) => {
-    const id = e.node.id;
-    const title = e.node.title;
-    const amountVariant = e.node.variants.edges.length;
-    const variant1 = e.node.variants.edges[0].node;
-    const variant2 = e.node.variants.edges[amountVariant - 1].node;
-    if (amountVariant == 1) {
-      return {
-        id,
-        title,
-        variants: [variant1],
-      };
-    } else if (variant1.price !== variant2.price) {
-      return {
-        id,
-        title,
-        variants: [variant1, variant2],
-      };
-    } else {
-      return {
-        id,
-        title,
-        variants: [variant1],
-      };
-    }
-  });
-
-  return data;
-};

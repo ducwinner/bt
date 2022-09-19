@@ -10,44 +10,15 @@ import { getCollections } from '../../data/productCollection';
 import { useQuery, gql } from '@apollo/client';
 import { customCollections } from '../../function/customCollection';
 
-const queryCollections = gql`
-  {
-    shop {
-      collections(first: 6) {
-        edges {
-          node {
-            id
-            title
-            image {
-              url
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-function ProductCollection() {
+function ProductCollection({ collecionAll }) {
   //Hook
   // const [selectedOptions, setSelectedOptions] = useState([]);
-  const [collectionAll, setCollectionAll] = useState([]);
+  const [collectionAll, setCollectionAll] = useState(collecionAll);
   const [inputValue, setInputValue] = useState('');
-  const [options, setOptions] = useState([]);
+  const [options, setOptions] = useState(collecionAll);
   //Redux
   const selectedOptions = useSelector((state) => state.collections.data);
   const dispatch = useDispatch();
-
-  // call api: get Collections
-  const { data, loading } = useQuery(queryCollections, {
-    onCompleted() {
-      const collections = customCollections(data);
-      setCollectionAll(collections);
-      setOptions(collections);
-    },
-  });
-
-  console.log('collectionAll', collectionAll);
 
   const updateText = useCallback(
     (value) => {

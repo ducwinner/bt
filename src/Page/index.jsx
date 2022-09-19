@@ -19,43 +19,17 @@ import { useSelector } from 'react-redux';
 import ProductCollection from '../components/ProductCollection';
 import ProductTags from '../components/ProductTags';
 import SpecificProducts from '../components/SpecificProducts';
-// import { getProductAll, getProductByCollections, getProductByTags } from '../data/productAll';
-// import { getProductByRule } from '../data/productAll';
 import { useQuery, gql } from '@apollo/client';
 import '../styles/home.css';
-import { customProductAll, customProductByTags } from '../function/customData';
-
-const queryAll = gql`
-  {
-    products(first: 20) {
-      edges {
-        node {
-          id
-          title
-          images(first: 1) {
-            edges {
-              node {
-                url
-              }
-            }
-          }
-          variants(first: 2) {
-            edges {
-              node {
-                title
-                price
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
+import { customProductAll } from '../function/customData';
+import { queryCollections, queryProductAll, queryTags } from '../query';
+import { customCollections } from '../function/customCollection';
 
 export default function HomePage() {
   //hook
-  const [productAll, setProductALL] = useState([]);
+  const [productAll, setProductAll] = useState([]);
+  const [collectionAll, setCollectionAll] = useState([]);
+  const [tags, setTags] = useState([]);
   const [name, setName] = useState('');
   const [priority, setPriority] = useState('');
   const [priorityErr, setPriorityErr] = useState(false);
@@ -70,116 +44,48 @@ export default function HomePage() {
   const productsSpecific = useSelector((state) => state.specificProduct.data);
   const tagsQuery = useSelector((state) => state.tags.data);
   const collectionsQuery = useSelector((state) => state.collections.data);
-  // call api: get all Products
-  const { data, loading } = useQuery(queryAll, {
-    onCompleted() {
-      const productAll = customProductAll(data);
-      setProductALL(productAll);
+
+  // call api: get all Products, Collections, Tags
+  const { data: data1, loading } = useQuery(queryProductAll, {
+    onCompleted(data) {
+      const result = customProductAll(data);
+      setProductAll(result);
     },
   });
 
-  // call api: get product by rule
+  const { data: data2, loading: loanging2 } = useQuery(queryCollections, {
+    onCompleted(data) {
+      const result = customCollections(data);
+      setCollectionAll(result);
+    },
+  });
 
-  const getProductByTags = (tags) => {
-    console.log('tags', tags);
-    let lstQuery = '';
-    tags.forEach((e, index) => {
-      if (index == 0) {
-        lstQuery += `(tag:'${e}') `;
-      } else {
-        lstQuery += `OR (tag:'${e}')`;
-      }
-    });
-
-    const query = gql`{
-        products(first: 10, query: "${lstQuery}") {
-              edges {
-                node {
-                  id
-                  title
-                  variants(first:2) {
-                      edges {
-                        node {
-                          title
-                          price
-                        }
-                      }
-                    }
-                  }
-            }
-        }
-    }`;
-
-    const { data, loading } = useQuery(query);
-    console.log(data);
-    const products = customProductByTags(data);
-
-    return data;
-  };
-
-  if (tagsQuery.length > 0) {
-    let aaa = getProductByTags(tagsQuery);
-    console.log('getProductByTags', aaa);
-  }
-
-  const getProductByCollection = () => {
-    const query = gql`
-      {
-        collection(id: "gid://shopify/Product/1974208299030") {
-          products(first: 10) {
-            edges {
-              node {
-                id
-                title
-                variants(first: 2) {
-                  edges {
-                    node {
-                      price
-                      title
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `;
-    const { data, loading } = useQuery(query);
-
-    return data;
-  };
-
-  const abc = getProductByCollection();
-  console.log('getProductByCollection', abc);
-  //   const callALL = async () => {
-  //    let list = await Promise.all(
-  //     ['gid://shopify/Collection/70598819862','gid://shopify/Product/1974208299030'].map((id) => {
-  //       return getProductByCollection(id)
-  //     })
-  //     )
-
-  //     let a = ['gid://shopify/Collection/70598819862','gid://shopify/Product/1974208299030'].map((id) => {
-  //       return getProductByCollection(id)
-  //     })
-
-  //     console.log(a)
-  //     return list
-  //   }
-
-  //  const b = callALL();
-  //   console.log(b)
+  const { data: data3, loading: loading3 } = useQuery(queryTags, {
+    onCompleted(data) {
+      const result = data.shop.productTags.edges.map((e) => {
+        return e.node;
+      });
+      setTags(result);
+    },
+  });
 
   // Validate all require
   useEffect(() => {
     if (name && priority && !priorityErr && rulePriceValue && !priceErr && selectApply && selectCustomPrice) {
       setIsOKSave(true);
     } else {
+      console.log('false');
       setIsOKSave(false);
     }
   }, [name, priority, priorityErr, rulePriceValue, priceErr, selectApply, selectCustomPrice]);
 
   const handleNameChange = useCallback((value) => setName(value), []);
+
+  const handleSelectChange = useCallback((value) => setSelectStatus(value), []);
+
+  const handleSelectApplyChange = useCallback((value) => setSelectApply(value), []);
+
+  const handleSelectCustomPrice = useCallback((value) => setSelectCustomPrice(value), []);
 
   const handlePriorityChange = useCallback((value) => {
     // check integer
@@ -195,37 +101,34 @@ export default function HomePage() {
 
   const handlevRulePriceChange = useCallback((value) => {
     if (value < 0) {
+      setPriceErr(false);
       value = Math.abs(value);
     }
 
-    if (value > 100) {
+    if (value > 100 && selectCustomPrice == 'percent') {
       setPriceErr(true);
+    } else {
+      setPriceErr(false);
     }
+
     setRulePriceValue(value);
   }, []);
 
-  const handleSelectChange = useCallback((value) => setSelectStatus(value), []);
-
-  const handleSelectApplyChange = useCallback((value) => setSelectApply(value), []);
-
-  const handleSelectCustomPrice = useCallback((value) => setSelectCustomPrice(value), []);
-
-  const callProductsByRule = useCallback(async () => {
+  // Call products with Rule
+  const callProductsByRule = async () => {
     let productApply = [];
     if (selectApply == 'specific') {
       productApply = productsSpecific;
     } else if (selectApply == 'tags') {
-      productApply = await getProductByTags(tagsQuery);
+      // productApply = await getProductByTags(tagsQuery);
     } else if (selectApply == 'collection') {
-      collectionsQuery.forEach(async (e) => {
-        const data = await getProductByCollection(collectionsQuery);
-      });
-      productApply = getProductByCollection(collectionsQuery);
+      const colectionsMatch = collectionAll.filter((e) => collectionsQuery.includes(e.id));
+      productApply = colectionsMatch.map((e) => e.products).flat();
     } else {
       productApply = productAll;
     }
     return productApply;
-  }, [selectApply, productsSpecific, tagsQuery, collectionsQuery, productAll]);
+  };
 
   const handlePriceByRule = useCallback(
     (data) => {
@@ -239,12 +142,14 @@ export default function HomePage() {
             if (currentPrice < +rulePriceValue) {
               return {
                 title,
-                price: currentPrice,
+                currentPrice,
+                lastPrice: currentPrice,
               };
             } else {
               return {
                 title,
-                price: +rulePriceValue,
+                currentPrice,
+                lastPrice: +rulePriceValue,
               };
             }
           });
@@ -261,12 +166,14 @@ export default function HomePage() {
             if (currentPrice < +rulePriceValue) {
               return {
                 title,
-                price: currentPrice,
+                currentPrice,
+                lastPrice: currentPrice,
               };
             } else {
               return {
                 title,
-                price: currentPrice - +rulePriceValue,
+                currentPrice,
+                lastPrice: currentPrice - +rulePriceValue,
               };
             }
           });
@@ -283,7 +190,8 @@ export default function HomePage() {
             const price = currentPrice - (currentPrice * +rulePriceValue) / 100;
             return {
               title,
-              price,
+              currentPrice,
+              lastPrice: price,
             };
           });
           return {
@@ -298,24 +206,28 @@ export default function HomePage() {
     [rulePriceValue, selectCustomPrice]
   );
 
-  const handleAddPricingRule = useCallback(async () => {
+  const handleAddPricingRule = async () => {
     const data = await callProductsByRule();
+    console.log(data);
     const dataAfterApplyRule = handlePriceByRule(data);
 
     // data Table
     let rows = [];
     dataAfterApplyRule.forEach((e, index) => {
-      if (index < 10) {
-        if (e.variants.length == 1) {
-          rows.push([`${e.title} ( all variant )`, `${e.variants[0].price} $`]);
-        } else {
-          rows.push([`${e.title} ( ${e.variants[0].title})`, `${e.variants[0].price} $`]);
-          rows.push([`${e.title} ( ${e.variants[1].title})`, `${e.variants[0].price} $`]);
-        }
+      // limit 10 row
+      let productName = '';
+      if (e.variants.length == 1) {
+        productName = `${e.title} ( all variant )`;
+      } else {
+        productName = `${e.title} ( ${e.variants[0].title} )`;
+      }
+      if (index < 13) {
+        rows.push([productName, `${e.variants[0].currentPrice} $`, `${e.variants[0].lastPrice} $`]);
       }
     });
     setRows(rows);
-  }, [selectApply, productsSpecific, tagsQuery, collectionsQuery, productAll, rulePriceValue, selectCustomPrice]);
+  };
+
   return (
     <Page fullWidth>
       <Layout>
@@ -371,12 +283,13 @@ export default function HomePage() {
                     {
                       label: 'Product collection',
                       value: 'collection',
-                      renderChildren: () => selectApply == 'collection' && <ProductCollection />,
+                      renderChildren: () =>
+                        selectApply == 'collection' && <ProductCollection collecionAll={collectionAll} />,
                     },
                     {
                       label: 'Product tags',
                       value: 'tags',
-                      renderChildren: () => selectApply == 'tags' && <ProductTags />,
+                      renderChildren: () => selectApply == 'tags' && <ProductTags tags={tags} />,
                     },
                   ]}
                   selected={selectApply}
@@ -422,7 +335,11 @@ export default function HomePage() {
             <Layout.Section secondary>
               <div className="pricing-detail">
                 <div className="pricing-detail-heading">Show product pricing detail</div>
-                <DataTable columnContentTypes={['text', 'text']} headings={['Title', 'Modified price']} rows={rows} />
+                <DataTable
+                  columnContentTypes={['text', 'text', 'text']}
+                  headings={['Product', 'Origin Price', 'Modified Price']}
+                  rows={rows}
+                />
               </div>
             </Layout.Section>
           </Layout>
